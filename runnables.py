@@ -1,36 +1,109 @@
 import time
 
 import cv2 as cv
+import numpy as np
 from PyQt5.QtCore import QObject, QRunnable, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage
+from vimba import (COLOR_PIXEL_FORMATS, MONO_PIXEL_FORMATS,
+                   OPENCV_PIXEL_FORMATS, Camera, PixelFormat, Vimba,
+                   VimbaCameraError, VimbaFeatureError,
+                   intersect_pixel_formats)
 
+import vimba_handler
 
-def nparray2QImage(array):
+def vimba2QImage(array, resolution=(656,492)):
+    if not isinstance(array, np.ndarray):
+        raise Exception('Unable to get frame from camera')
+    array.convert_pixel_format(PixelFormat.Mono8) # Not sure if this needs to be done
+    array = cv.cvtColor(array.as_opencv_image(),cv.COLOR_GRAY2RGB) # PyQt uses RGB but OpenCV uses BGR
+    hres, vres = resolution
     h, w, ch = array.shape
     bytesPerLine = ch * w
     convertToQtFormat = QImage(array.data, w, h, bytesPerLine, QImage.Format_RGB888)
-    return convertToQtFormat.scaled(656, 492, Qt.KeepAspectRatio)
+    return convertToQtFormat.scaled(hres, vres, Qt.KeepAspectRatio)
 
 class RunnableSignals(QObject):
-    changePixmap = pyqtSignal(QImage)
+    frame = pyqtSignal(QImage)
     buttons_disabled = pyqtSignal(bool)
     set_status = pyqtSignal(str)
-    set_last_reading = pyqtSignal(str)
     
 class CameraRunnable(QRunnable):
     
     def __init__(self, camID):
         super().__init__()
         self.signal = RunnableSignals()
+        self.camID = camID
+        self.is_stopped = False
+        self.livestream_switch = False
+        self.framegrab_switch = False
+        self.exposure_value = 60000 # Maybe make a default settings dictionary to pipe in?
     
     @pyqtSlot
     def run(self):
-        for i in range(10):
-            print('running; {}s in'.format(i))
-            time.sleep(1)
+        with Vimba.get_instance():
+            with vimba_handler.get_camera(self.camID) as cam:
+                vimba_handler.setup_camera(cam,self.exposure_value)
+                
+                while not self.is_stopped():
+                    if self.livestream_switch:
+                        
+                        for frame in cam.get_frame_generator(limit=None):
+                            frame = vimba2QImage(frame)
+                            self.signal.frame.emit(frame)
+                            if not self.livestream_switch:
+                                break
+                    
+                    elif self.framegrab:
+                        
+                        frame = cam.get_frame()
+                        self.signal.frame.emit(vimba2QImage(frame))
+                        
+                    time.sleep(0.5)
     
-    def livestream(self, setting:bool):
+    @property
+    def is_stopped(self):
+        return self._stop
+    
+    @is_stopped.setter
+    def is_stopped(self, setting:bool):
         if isinstance(setting,bool):
-            self.livestream = setting
+            self._stop = setting
+        else:
+            print('Stop instruction was not a boolean.')
+    
+    @property
+    def livestream_switch(self):
+        return self._livestream
+    
+    @livestream_switch.setter
+    def livestream_switch(self, setting:bool):
+        if isinstance(setting,bool):
+            self._livestream = setting
         else:
             print('Livestream instruction was not a boolean.')
+
+    @property
+    def framegrab_switch(self):
+        return self._framegrab_switch
+    
+    @framegrab_switch.setter
+    def framegrab_switch(self, setting:bool):
+        if isinstance(setting,bool):
+            self._framegrab_switch = setting
+        else:
+            print('Framegrab instruction was not a boolean.')
+    
+    @property
+    def exposure_value(self):
+        return self._exposure
+    
+    @exposure_value.setter
+    def exposure_value(self, value:int):
+        if isinstance(value,int):
+            if value > 10 and value < 120000:
+                self.exposure_value = value
+            else:
+                print('Exposure value not in a sensible range.')
+        else:
+            print('Exposure value not an integer.')
+    
