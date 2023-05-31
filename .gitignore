@@ -1,0 +1,21 @@
+# Development
+test.py
+
+# IDEs
+.vscode/
+.idea/
+
+# Testing
+# project/tests/temp/**
+
+# Python runtime
+*.pyc
+*.egg-info
+.pytest_cache
+
+# Virtual Environment
+venv*/
+*.venv
+
+# Jupyter Notebook
+*.ipynb
