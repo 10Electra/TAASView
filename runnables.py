@@ -1,3 +1,4 @@
+import random
 import time
 
 import cv2 as cv
@@ -11,11 +12,12 @@ from vimba import (COLOR_PIXEL_FORMATS, MONO_PIXEL_FORMATS,
 
 import vimba_handler
 
+
 def vimba2QImage(array, resolution=(656,492)):
-    if not isinstance(array, np.ndarray):
-        raise Exception('Unable to get frame from camera')
     array.convert_pixel_format(PixelFormat.Mono8) # Not sure if this needs to be done
     array = cv.cvtColor(array.as_opencv_image(),cv.COLOR_GRAY2RGB) # PyQt uses RGB but OpenCV uses BGR
+    if not isinstance(array, np.ndarray):
+        raise Exception('Unable to get frame from camera')
     hres, vres = resolution
     h, w, ch = array.shape
     bytesPerLine = ch * w
@@ -31,32 +33,48 @@ class CameraRunnable(QRunnable):
     
     def __init__(self, camID):
         super().__init__()
-        self.signal = RunnableSignals()
+        self.signals = RunnableSignals()
         self.camID = camID
         self.is_stopped = False
+        self.is_idle = True
         self.livestream_switch = False
         self.framegrab_switch = False
         self.exposure_value = 60000 # Maybe make a default settings dictionary to pipe in?
     
-    @pyqtSlot
+    @pyqtSlot()
     def run(self):
+        # while not self.is_stopped:
+        #     while self.livestream_switch:
+        #         self.is_idle = False
+        #         self.signals.frame.emit(vimba2QImage(cv.imread('foil_image.png')))
+        #         time.sleep(random.randrange(2, 17, 1)/10)
+        #     if self.framegrab_switch:
+        #         self.is_idle = False
+        #         self.signals.frame.emit(vimba2QImage(cv.imread('foil_image.png')))
+        #         print('tried to emit image after framegrab')
+        #         self.framegrab_switch = False
+        #         if not self.is_idle:
+        #             self.signals.frame.emit(vimba2QImage(cv.imread('splashscreen.png')))
+        #             self.is_idle = True
+        #     time.sleep(0.5)
         with Vimba.get_instance():
             with vimba_handler.get_camera(self.camID) as cam:
                 vimba_handler.setup_camera(cam,self.exposure_value)
                 
-                while not self.is_stopped():
+                while not self.is_stopped:
                     if self.livestream_switch:
                         
                         for frame in cam.get_frame_generator(limit=None):
                             frame = vimba2QImage(frame)
-                            self.signal.frame.emit(frame)
+                            self.signals.frame.emit(frame)
                             if not self.livestream_switch:
                                 break
+                        
                     
-                    elif self.framegrab:
+                    elif self.framegrab_switch:
                         
                         frame = cam.get_frame()
-                        self.signal.frame.emit(vimba2QImage(frame))
+                        self.signals.frame.emit(vimba2QImage(frame))
                         
                     time.sleep(0.5)
     
@@ -101,7 +119,7 @@ class CameraRunnable(QRunnable):
     def exposure_value(self, value:int):
         if isinstance(value,int):
             if value > 10 and value < 120000:
-                self.exposure_value = value
+                self._exposure = value
             else:
                 print('Exposure value not in a sensible range.')
         else:
