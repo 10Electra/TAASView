@@ -21,6 +21,7 @@ class MainWindow(QMainWindow):
 
         self.live_video = QPushButton("Live Video")
         self.live_video.setMinimumHeight(38)
+        self.live_video.setCheckable(True)
         # self.live_video.setMinimumSize(button_width, button_height)  # Remove this line
 
         self.image_label = QLabel()
@@ -40,14 +41,20 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(200, 200)  # Set a minimum size for the window
 
     def set_image(self, array: np.ndarray):
+        print('beginning of set_image function.')
         qimage = QImage(array, array.shape[1], array.shape[0], array.shape[1] * 3, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(qimage)
         scaled_pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)
         self.image_label.setPixmap(scaled_pixmap)
+        print('have set pixmap!')
+        
+    @pyqtSlot(QImage)
+    def set_qimage(self, image: QImage):
+        self.image_label.setPixmap(QPixmap.fromImage(image))
 
-    def resizeEvent(self, event):
-        super(MainWindow, self).resizeEvent(event)
-        self.set_image(self.splashscreen)
+    # def resizeEvent(self, event):
+    #     super(MainWindow, self).resizeEvent(event)
+    #     self.set_image(self.splashscreen)
 
 
 if __name__ == '__main__':
@@ -55,16 +62,3 @@ if __name__ == '__main__':
     window = MainWindow()
     window.show()
     app.exec()
-
-
-
-
-        
-    # @pyqtSlot(QImage)
-    # def set_qimage(self, image: QImage):
-    #     self.image.setPixmap(QPixmap.fromImage(image))
-
-    # def resizeEvent(self, event):
-    #     self._image_size = [self.image.width(), self.image.height()]
-    #     self.event_size = [event.size().width(), event.size().height()]
-    #     print('Compare {} and {}.'.format(self._image_size,self.event_size))
