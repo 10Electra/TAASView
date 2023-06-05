@@ -3,8 +3,8 @@ import sys
 from PyQt5.QtCore import QThreadPool
 from PyQt5.QtWidgets import QApplication
 
-from simple_runnables import CameraRunnable
-from simple_view import CameraWindow
+from runnables import CameraRunnable
+from view import CameraWindow
 
 
 class CameraController:
