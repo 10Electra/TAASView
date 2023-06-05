@@ -27,6 +27,6 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     window = MainWindow()
-    controller = CameraController(window, 'DEV_000F314DA5E0')
+    controller = CameraController(window, 'DEV_000F314DE3E6') #DEV_000F314DA5E0
     window.show()
     app.exec()

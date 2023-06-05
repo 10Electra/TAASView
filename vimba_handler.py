@@ -46,6 +46,11 @@ def setup_camera(cam: Camera,exposure=None):
                 cam.ExposureTimeAbs.set('70000')
             except (AttributeError, VimbaFeatureError):
                 pass
+        elif cam.get_id() == 'DEV_000F314DE3E6':
+            try:
+                cam.ExposureTimeAbs.set('3000')
+            except (AttributeError, VimbaFeatureError):
+                pass
         else:
             raise Exception('Exposure and Camera ID provided are both invalid. Abort.')
         # Enable white balancing if camera supports it

@@ -41,16 +41,16 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(200, 200)  # Set a minimum size for the window
 
     def set_image(self, array: np.ndarray):
-        print('beginning of set_image function.')
         qimage = QImage(array, array.shape[1], array.shape[0], array.shape[1] * 3, QImage.Format_RGB888)
         pixmap = QPixmap.fromImage(qimage)
         scaled_pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)
         self.image_label.setPixmap(scaled_pixmap)
-        print('have set pixmap!')
         
     @pyqtSlot(QImage)
     def set_qimage(self, image: QImage):
-        self.image_label.setPixmap(QPixmap.fromImage(image))
+        pixmap = QPixmap.fromImage(image)
+        scaled_pixmap = pixmap.scaled(self.image_label.size(), Qt.KeepAspectRatio)
+        self.image_label.setPixmap(scaled_pixmap)
 
     # def resizeEvent(self, event):
     #     super(MainWindow, self).resizeEvent(event)
