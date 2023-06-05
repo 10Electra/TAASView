@@ -9,27 +9,23 @@ def abort(reason: str, return_code: int = 1):
     print(reason + '\n')
     sys.exit(return_code)
 
-
-def get_camera(camera_id: Optional[str]) -> Camera:
+def get_camera(camera_id: str) -> Camera:
     with Vimba.get_instance() as vimba:
-        if camera_id:
-            try:
-                return vimba.get_camera_by_id(camera_id)
+        try:
+            return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
-                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+        except VimbaCameraError:
+            abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
-        else:
-            cams = vimba.get_all_cameras()
-            if not cams:
-                abort('No Cameras accessible. Abort.')
-
-            return cams[0]  # Returns the camera with the given ID. If no ID given, returns first camera. Aborts otherwise
-
+def get_camera_id_list():
+    with Vimba.get_instance() as vimba:
+        cams = vimba.get_all_cameras()
+        if not cams:
+            return None
+        return [cam.get_id() for cam in cams]
 
 def setup_camera(cam: Camera,exposure=None):
     with cam:
-        # Enable auto exposure time setting if camera supports it
         try:
             cam.ExposureAuto.set('Off')
         except (AttributeError, VimbaFeatureError):
