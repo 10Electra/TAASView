@@ -1,14 +1,10 @@
-import os
 import sys
 
-import cv2 as cv
-from numpy import ndarray
-from PyQt5.QtCore import QObject, QThreadPool, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QThreadPool
 from PyQt5.QtWidgets import QApplication
 
 from simple_runnables import CameraRunnable
-from simple_view import MainWindow
+from simple_view import CameraWindow
 
 
 class CameraController:
@@ -26,7 +22,7 @@ class CameraController:
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-    window = MainWindow()
-    controller = CameraController(window, 'DEV_000F314DE3E6') #DEV_000F314DA5E0
+    window = CameraWindow()
+    controller = CameraController(window, 'DEV_000F314DA5E0') #Tech Workshop: DEV_000F314DA5E0, Subin's camera:DEV_000F314DE3E6
     window.show()
     app.exec()
