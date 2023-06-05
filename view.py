@@ -1,10 +1,11 @@
 import sys
+from PyQt5 import QtGui
 
 import cv2 as cv
 from PyQt5.QtCore import Qt, QThreadPool, pyqtSlot
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QApplication, QLabel, QMainWindow, QPushButton,
-                             QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow,
+                             QPushButton, QVBoxLayout, QWidget)
 
 import vimba_handler
 from camera_view import CameraWindow
@@ -22,16 +23,16 @@ class MainWindow(QMainWindow):
         self.cam_windows = {}
         self.cam_threads = {}
 
-        self.main_layout = QVBoxLayout()
+        self.cam_connect_layout = QVBoxLayout()
         self.label1 = QLabel("Accessible Cameras")
         self.label1.setFont(QFont("Segoe UI", 12))
         self.label1.setStyleSheet("QLabel { color: #333333; }")
-        self.main_layout.addWidget(self.label1)
+        self.cam_connect_layout.addWidget(self.label1)
 
         self.camera_button_layout = QVBoxLayout()  # New layout for camera buttons
-        self.main_layout.addLayout(self.camera_button_layout)  # Add camera button layout to main layout
+        self.cam_connect_layout.addLayout(self.camera_button_layout)  # Add camera button layout to main layout
 
-        self.main_layout.addStretch(1)  # Add stretchable space before the button
+        # self.cam_connect_layout.addStretch(1)  # Add stretchable space before the button
 
         self.update_cams_button = QPushButton('Update Cameras')
         self.update_cams_button.setStyleSheet(
@@ -39,11 +40,37 @@ class MainWindow(QMainWindow):
             "font-size: 14px; } "
             "QPushButton:pressed { background-color: #c0c0c0; }"
         )
-        self.main_layout.addWidget(self.update_cams_button)
+        self.cam_connect_layout.addWidget(self.update_cams_button)
 
-        self.main_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.cam_connect_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
-        self.main_layout.addStretch(1)  # Add additional stretchable space after the button
+        self.cam_connect_layout.addStretch(1)  # Add additional stretchable space after the button
+        
+        self.cam_control_layout = QVBoxLayout()
+
+        self.label2 = QLabel("All-Camera Control")
+        self.label2.setFont(QFont("Segoe UI", 12))
+        self.label2.setStyleSheet("QLabel { color: #333333; }")
+        self.cam_control_layout.addWidget(self.label2)
+        
+        self.cam_control_layout.addStretch(1)
+        
+        self.record_button = QPushButton('Record Video')
+        self.record_button.setStyleSheet(
+            "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
+            "font-size: 14px; } "
+            "QPushButton:pressed { background-color: #c0c0c0; }"
+        )
+        self.cam_control_layout.addWidget(self.record_button)
+        
+        self.cam_connect_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        
+        self.cam_control_layout.addStretch(1)
+        
+        self.main_layout = QHBoxLayout()
+        self.main_layout.addLayout(self.cam_connect_layout)
+        self.main_layout.addStretch(1)
+        self.main_layout.addLayout(self.cam_control_layout)
 
         self.main_widget = QWidget()
         self.main_widget.setLayout(self.main_layout)
@@ -57,8 +84,6 @@ class MainWindow(QMainWindow):
         self.centralWidget().setLayout(self.main_layout_wrapper)
 
         self.update_cams_button.clicked.connect(self.update_cams)  # Connect update_cams_button to update_cams method
-
-        self.setFixedSize(200, 200)  # Initial fixed size
 
     def update_camera_buttons(self):
         # Clear existing buttons
@@ -86,21 +111,9 @@ class MainWindow(QMainWindow):
             self.label2.setStyleSheet("QLabel { color: #333333; }")
             self.camera_button_layout.addWidget(self.label2)  # Add label to the camera button layout
 
-        self.update_window_size()  # Update the window size
-
     def update_cams(self):
         self.accessible_cams = vimba_handler.get_camera_id_list()
         self.update_camera_buttons()
-
-    def update_window_size(self):
-        num_cam_buttons = len(self.cam_buttons)
-        button_height = 50
-        padding = 20
-
-        window_width = 200 + (2 * padding)
-        window_height = 100 + (num_cam_buttons * button_height) + (2 * padding)
-
-        self.setFixedSize(window_width, window_height)
 
     @pyqtSlot()
     def open_cam(self):
@@ -118,7 +131,11 @@ class MainWindow(QMainWindow):
         else:
             self.cam_windows[cam_id] = None
             self.cam_threads[cam_id] = None
-        
+    
+    def resizeEvent(self, a0) -> None:
+        print([self.size().height(),self.size().width()])
+        return super().resizeEvent(a0)
+    
 if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
