@@ -1,3 +1,4 @@
+import sys
 import cv2 as cv
 from PyQt5.QtCore import QObject, QRunnable, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage
@@ -60,3 +61,9 @@ class CameraRunnable(QRunnable):
             self._livestream = setting
         else:
             print('Livestream instruction was not a boolean.')
+    
+    def livestream_toggle(self):
+        if not self.livestream_switch:
+            self.livestream_switch = True
+        else:
+            self.livestream_switch = False
