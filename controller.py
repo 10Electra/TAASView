@@ -1,8 +1,8 @@
 import sys
 
-from PyQt5.QtCore import QThreadPool
-from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QMessageBox
+from PyQt5.QtCore import QThreadPool, pyqtSlot
 from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QApplication, QLabel, QMessageBox, QPushButton
 
 import vimba_handler
 from camera_view import CameraWindow
@@ -24,24 +24,39 @@ class Controller():
         self.main_window.update_cams_button.clicked.connect(self.update_cams)
         self.main_window.path_entry.returnPressed.connect(self.path_edit_clicked)
         self.main_window.path_edit_button.clicked.connect(self.path_edit_clicked)
+        
+        self.main_window.temp_button.clicked.connect(self.print_dicts)
+        
+        self.update_cams()
 
     def open_cam(self):
         cam_id = self.main_window.cam_buttons[self.main_window.sender()]
-        if self.cam_windows.get(cam_id) is None:
-            self.cam_windows[cam_id] = CameraWindow()
-            self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path=self.main_window.path_entry.text)
-            
-            self.cam_windows[cam_id].signals.closed.connect(self.cam_threads[cam_id].stop)
-            self.cam_threads[cam_id].signals.frame.connect(self.cam_windows[cam_id].set_qimage)
-            self.pool.start(self.cam_threads[cam_id])
-            
-            self.cam_windows[cam_id].live_video.clicked.connect(self.cam_threads[cam_id].livestream_toggle)
-            
-            self.cam_windows[cam_id].show()
-
-        else:
-            self.cam_windows[cam_id] = None
-            self.cam_threads[cam_id] = None
+        if self.cam_windows.get(cam_id) is not None or self.cam_threads.get(cam_id) is not None:
+            return
+        print('Opening a window and a runnable for cam_id={}'.format(cam_id))
+        self.cam_windows[cam_id] = CameraWindow()
+        self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path=self.main_window.path_entry.text)
+        
+        self.cam_windows[cam_id].signals.closed.connect(self.cam_threads[cam_id].stop)
+        self.cam_threads[cam_id].signals.release.connect(self.release_cam)
+        self.cam_threads[cam_id].signals.frame.connect(self.cam_windows[cam_id].set_qimage)
+        self.pool.start(self.cam_threads[cam_id])
+        
+        self.cam_windows[cam_id].live_video.clicked.connect(self.cam_threads[cam_id].livestream_toggle)
+        
+        self.cam_windows[cam_id].show()
+    
+    def print_dicts(self):
+        print()
+        print('self.cam_windows:\n\t{}'.format(self.cam_windows))
+        print('self.cam_threads:\n\t{}'.format(self.cam_threads))
+    
+    def release_cam(self, cam_id: str):
+        print('Releasing cam_id={}\'s window and runnable'.format(cam_id))
+        assert(self.cam_windows.get(cam_id) is not None) # Check the cam_id has a window before release
+        assert(self.cam_threads.get(cam_id) is not None) # Check the cam_id has a thread before release
+        self.cam_windows[cam_id] = None
+        self.cam_threads[cam_id] = None
     
     def path_edit_clicked(self) -> None:
         if self.main_window.path_edit_button.text() == 'Edit':

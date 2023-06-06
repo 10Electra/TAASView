@@ -11,13 +11,14 @@ import vimba_handler
 
 class RunnableSignals(QObject):
     frame = pyqtSignal(QImage)
+    release = pyqtSignal(str)
     
 class CameraRunnable(QRunnable):
     
     def __init__(self, camID:str, save_path:str):
         super().__init__()
         self.signals = RunnableSignals()
-        self.camID = camID
+        self.cam_id = camID
         self.save_path = save_path
         self.is_livestreaming = False
         self.is_recording = False
@@ -26,7 +27,7 @@ class CameraRunnable(QRunnable):
     @pyqtSlot()
     def run(self):
         with Vimba.get_instance():
-            with vimba_handler.get_camera(self.camID) as cam:
+            with vimba_handler.get_camera(self.cam_id) as cam:
                 vimba_handler.setup_camera(cam)
                 
                 while not self.is_stopped:
@@ -55,6 +56,7 @@ class CameraRunnable(QRunnable):
                             self.signals.frame.emit(qimage)
                             if not self.is_livestreaming or self.is_stopped:
                                 break
+        self.signals.release.emit(self.cam_id)
     
     def toggle_recording(self):
         if self.is_recording:

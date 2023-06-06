@@ -62,6 +62,14 @@ class MainWindow(QMainWindow):
         )
         self.cam_control_layout.addWidget(self.record_button)
         
+        self.temp_button = QPushButton('Print dict contents')
+        self.temp_button.setStyleSheet(
+            "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
+            "font-size: 14px; } "
+            "QPushButton:pressed { background-color: #c0c0c0; }"
+        )
+        self.cam_control_layout.addWidget(self.temp_button)
+        
         self.cam_control_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         
         self.cam_control_layout.addStretch(1)
