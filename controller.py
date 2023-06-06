@@ -29,7 +29,9 @@ class Controller():
         cam_id = self.main_window.cam_buttons[self.main_window.sender()]
         if self.cam_windows.get(cam_id) is None:
             self.cam_windows[cam_id] = CameraWindow()
-            self.cam_threads[cam_id] = CameraRunnable(cam_id)
+            self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path=self.main_window.path_entry.text)
+            
+            self.cam_windows[cam_id].signals.closed.connect(self.cam_threads[cam_id].stop)
             self.cam_threads[cam_id].signals.frame.connect(self.cam_windows[cam_id].set_qimage)
             self.pool.start(self.cam_threads[cam_id])
             
@@ -71,7 +73,6 @@ class Controller():
         if self.accessible_cams is not None:
             self.main_window.cam_buttons = {}
             for cam_id in self.accessible_cams:
-                print('now connecting cam id {}'.format(cam_id))
                 button = QPushButton(cam_id)
                 button.setStyleSheet(
                     "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
@@ -80,7 +81,6 @@ class Controller():
                 )
                 self.main_window.cam_buttons[button] = cam_id
                 self.main_window.camera_button_layout.addWidget(button)
-                print('self.main_window.cam_buttons = {}'.format(self.main_window.cam_buttons))
                 button.clicked.connect(self.open_cam)
         else:
             self.main_window.camera_button_layout.addStretch(1)
