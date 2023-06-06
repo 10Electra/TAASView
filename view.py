@@ -1,9 +1,10 @@
+import os
 import sys
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QMainWindow,
-                             QPushButton, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
+                             QMainWindow, QPushButton, QVBoxLayout, QWidget)
 
 
 class MainWindow(QMainWindow):
@@ -15,14 +16,18 @@ class MainWindow(QMainWindow):
         
         self.init_cam_connect_widgets()
         self.init_cam_control_widgets()
+        self.init_camera_widgets()
+        self.init_path_widgets()
         self.init_main_widgets()
         
     def init_cam_connect_widgets(self) -> None:
         self.cam_connect_layout = QVBoxLayout()
         self.label1 = QLabel("Accessible Cameras")
-        self.label1.setFont(QFont("Segoe UI", 12))
+        self.label1.setFont(QFont("Segoe UI", 10))
         self.label1.setStyleSheet("QLabel { color: #333333; }")
         self.cam_connect_layout.addWidget(self.label1)
+
+        self.cam_connect_layout.addStretch(1)
 
         self.camera_button_layout = QVBoxLayout()
         self.cam_connect_layout.addLayout(self.camera_button_layout)
@@ -43,7 +48,7 @@ class MainWindow(QMainWindow):
         self.cam_control_layout = QVBoxLayout()
 
         self.label2 = QLabel("All-Camera Control")
-        self.label2.setFont(QFont("Segoe UI", 12))
+        self.label2.setFont(QFont("Segoe UI", 10))
         self.label2.setStyleSheet("QLabel { color: #333333; }")
         self.cam_control_layout.addWidget(self.label2)
         
@@ -60,13 +65,40 @@ class MainWindow(QMainWindow):
         self.cam_control_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         
         self.cam_control_layout.addStretch(1)
-        
-    def init_main_widgets(self) -> None:
-        self.main_layout = QHBoxLayout()
-        self.main_layout.addLayout(self.cam_connect_layout)
-        self.main_layout.addStretch(1)
-        self.main_layout.addLayout(self.cam_control_layout)
+    
+    def init_camera_widgets(self) -> None:
+        self.cam_widgets_layout = QHBoxLayout()
+        self.cam_widgets_layout.addLayout(self.cam_connect_layout)
+        self.cam_widgets_layout.addStretch(1)
+        self.cam_widgets_layout.addLayout(self.cam_control_layout)
+    
+    def init_path_widgets(self) -> None:
+        self.path_hint_label = QLabel('...\\' + os.getcwd().split('\\')[-1] + '\\')
 
+        self.path_entry = QLineEdit()
+        self.path_entry.setPlaceholderText("Enter your text")
+        self.path_entry.setReadOnly(True)
+        
+        self.path_edit_button = QPushButton('Edit')
+        
+        self.path_header_label = QLabel('Save path')
+        self.path_header_label.setFont(QFont("Segoe UI", 10))
+        self.path_header_label.setStyleSheet("QLabel { color: #333333; }")
+        
+        self.path_widgets_h_layout = QHBoxLayout()
+        self.path_widgets_h_layout.addWidget(self.path_hint_label)
+        self.path_widgets_h_layout.addWidget(self.path_entry)
+        self.path_widgets_h_layout.addWidget(self.path_edit_button)
+        
+        self.path_widgets_layout = QVBoxLayout()
+        self.path_widgets_layout.addWidget(self.path_header_label)
+        self.path_widgets_layout.addLayout(self.path_widgets_h_layout)
+    
+    def init_main_widgets(self) -> None:
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addLayout(self.cam_widgets_layout)
+        self.main_layout.addLayout(self.path_widgets_layout)
+        
         self.main_widget = QWidget()
         self.main_widget.setLayout(self.main_layout)
 

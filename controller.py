@@ -1,8 +1,8 @@
 import sys
 
-from PyQt5.QtCore import QThreadPool, pyqtSlot
+from PyQt5.QtCore import QThreadPool
+from PyQt5.QtWidgets import QApplication, QLabel, QPushButton, QMessageBox
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication, QLabel, QPushButton
 
 import vimba_handler
 from camera_view import CameraWindow
@@ -22,6 +22,8 @@ class Controller():
         self.cam_threads = {}
         
         self.main_window.update_cams_button.clicked.connect(self.update_cams)
+        self.main_window.path_entry.returnPressed.connect(self.path_edit_clicked)
+        self.main_window.path_edit_button.clicked.connect(self.path_edit_clicked)
 
     def open_cam(self):
         cam_id = self.main_window.cam_buttons[self.main_window.sender()]
@@ -38,6 +40,26 @@ class Controller():
         else:
             self.cam_windows[cam_id] = None
             self.cam_threads[cam_id] = None
+    
+    def path_edit_clicked(self) -> None:
+        if self.main_window.path_edit_button.text() == 'Edit':
+            self.main_window.path_entry.setReadOnly(False)
+            self.main_window.path_edit_button.setText('Save')
+        elif self.main_window.path_edit_button.text() == 'Save':
+            self.main_window.path_entry.setReadOnly(True)
+            self.main_window.path_edit_button.setText('Edit')
+            
+            dlg = QMessageBox(self.main_window)
+            dlg.setWindowTitle("Confirmation")
+            dlg.setText("Are you sure you want to save this path?")
+            dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            dlg.setIcon(QMessageBox.Question)
+            button = dlg.exec()
+
+            if button == QMessageBox.Yes:
+                print('Path of {} has been saved.'.format(self.main_window.path_entry.text()))
+        else:
+            raise ValueError('Path edit button text is not set as expected')
     
     def update_camera_buttons(self) -> None:
         while self.main_window.camera_button_layout.count() > 0:
