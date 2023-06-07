@@ -33,16 +33,16 @@ class Controller():
         cam_id = self.main_window.cam_buttons[self.main_window.sender()]
         if self.cam_windows.get(cam_id) is not None or self.cam_threads.get(cam_id) is not None:
             return
-        print('Opening a window and a runnable for cam_id={}'.format(cam_id))
         self.cam_windows[cam_id] = CameraWindow()
         self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path=self.main_window.path_entry.text)
         
         self.cam_windows[cam_id].signals.closed.connect(self.cam_threads[cam_id].stop)
         self.cam_threads[cam_id].signals.release.connect(self.release_cam)
         self.cam_threads[cam_id].signals.frame.connect(self.cam_windows[cam_id].set_qimage)
+        self.cam_threads[cam_id].signals.idle.connect(self.cam_windows[cam_id].set_splashscreen)
         self.pool.start(self.cam_threads[cam_id])
         
-        self.cam_windows[cam_id].live_video.clicked.connect(self.cam_threads[cam_id].livestream_toggle)
+        self.cam_windows[cam_id].live_button.clicked.connect(self.cam_threads[cam_id].livestream_toggle)
         
         self.cam_windows[cam_id].show()
     
@@ -52,7 +52,6 @@ class Controller():
         print('self.cam_threads:\n\t{}'.format(self.cam_threads))
     
     def release_cam(self, cam_id: str):
-        print('Releasing cam_id={}\'s window and runnable'.format(cam_id))
         assert(self.cam_windows.get(cam_id) is not None) # Check the cam_id has a window before release
         assert(self.cam_threads.get(cam_id) is not None) # Check the cam_id has a thread before release
         self.cam_windows[cam_id] = None

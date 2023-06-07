@@ -17,24 +17,32 @@ class CameraWindow(QWidget):
         super().__init__()
         self.signals = Signals()
 
-        self.live_video = QPushButton("Live Video")
-        self.live_video.setMinimumHeight(38)
-        self.live_video.setCheckable(True)
+        self.live_button = QPushButton("Live Video")
+        self.live_button.setStyleSheet(
+            "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
+            "font-size: 14px; } "
+            "QPushButton:pressed { background-color: #c0c0c0; }"
+        )
+        self.live_button.setMinimumHeight(38)
+        self.live_button.setCheckable(True)
 
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.live_video)
+        main_layout.addWidget(self.live_button)
         main_layout.addWidget(self.image_label)
 
         self.setLayout(main_layout)
 
         self.splashscreen = cv.imread('splashscreen.png')
         self.qsplashscreen = utils.nparray2QImage(self.splashscreen)
-        self.set_qimage(self.qsplashscreen)
+        self.set_splashscreen()
 
         self.setMinimumSize(200, 200)
+                
+    def set_splashscreen(self) -> None:
+        self.set_qimage(self.qsplashscreen)
                 
     @pyqtSlot(QImage)
     def set_qimage(self, image: QImage):
