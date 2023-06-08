@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
             "font-size: 14px; } "
             "QPushButton:pressed { background-color: #c0c0c0; }"
         )
-        self.cam_control_layout.addWidget(self.temp_button)
+        # self.cam_control_layout.addWidget(self.temp_button)
         
         self.cam_control_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         

@@ -1,3 +1,4 @@
+import os
 import time
 
 import cv2 as cv
@@ -21,6 +22,7 @@ class CameraRunnable(QRunnable):
         self.signals = RunnableSignals()
         self.cam_id = camID
         self.save_path = save_path
+        self.video_file = None
         self.is_livestreaming = False
         self.is_recording = False
         self.is_idle = True
@@ -33,23 +35,18 @@ class CameraRunnable(QRunnable):
                 vimba_handler.setup_camera(cam)
                 
                 while not self.is_stopped:
+                    
                     if self.is_livestreaming:
-                        frame_timings = []
+                        nframes = 0
                         tstart = time.time()
-                        for frame in cam.get_frame_generator(limit=None):
                             
-                            window = 10 # seconds
-                            t = time.time()
-                            frame_timings.append(t)
-                            for timing in frame_timings:
-                                if timing < t - window:
-                                    frame_timings.remove(timing)
-                                else:
-                                    break
-                            if t - tstart > window:
-                                print('{} fps over last {} secs'.format(round(len(frame_timings)/window,3),window))
+                        for frame in cam.get_frame_generator(limit=None):
+                            nframes += 1
                             
                             array = utils.vimba2nparray(frame)
+                            
+                            if self.is_recording:
+                                self.video_file.write(array)
                             
                             # ratio = 1
                             # dim = (int(array.shape[1]*ratio),int(array.shape[0]*ratio))
@@ -58,19 +55,41 @@ class CameraRunnable(QRunnable):
                             self.signals.frame.emit(qimage)
                             if not self.is_livestreaming or self.is_stopped:
                                 break
+                        print('Camera {} had an average fps rate of {}'.format(self.cam_id,round(nframes/(time.time()-tstart),2)))
+                        
+                        if self.is_recording and self.video_file.isOpened():
+                            self.video_file.release()
+                            
                     elif not self.is_idle:
                         self.signals.idle.emit()
                         self.is_idle = True
         self.signals.release.emit(self.cam_id)
     
-    def toggle_recording(self):
-        if self.is_recording:
-            self.is_recording = False
-        else:
-            self.is_idle = False
-            self.is_recording = True
+    def get_filename(self) -> str:
+        for i in range(30):
+            path = f'{self.save_path}\\{self.cam_id}_{i}.mp4'
+            if not os.path.exists(path):
+                return path
+        raise FileExistsError("Searched many possible video paths in the given save_path - none available.")
     
-    def livestream_toggle(self):
+    def toggle_recording(self):
+        if self.is_recording: # Already recording
+            self.is_recording = False
+            
+            self.video_file.release()
+        else: # Was not recording yet
+            self.is_idle = False
+            self.is_livestreaming = True
+            self.is_recording = True
+            
+            width = 656
+            height = 492
+            frame_rate = 18
+            fourcc = cv.VideoWriter_fourcc(*'mp4v')
+            output_file = self.get_filename()
+            self.video_file = cv.VideoWriter(output_file, fourcc, frame_rate, (width, height))
+    
+    def toggle_livestream(self):
         if self.is_livestreaming:
             self.is_livestreaming = False
         else:

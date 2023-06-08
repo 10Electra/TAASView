@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PyQt5.QtCore import QThreadPool, pyqtSlot
@@ -27,14 +28,17 @@ class Controller():
         
         self.main_window.temp_button.clicked.connect(self.print_dicts)
         
-        self.update_cams()
+        self.main_window.path_entry.setText('videos')
+        
+        # self.update_cams()
 
     def open_cam(self):
         cam_id = self.main_window.cam_buttons[self.main_window.sender()]
+        save_path = self.main_window.path_entry.text()
         if self.cam_windows.get(cam_id) is not None or self.cam_threads.get(cam_id) is not None:
             return
         self.cam_windows[cam_id] = CameraWindow()
-        self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path=self.main_window.path_entry.text)
+        self.cam_threads[cam_id] = CameraRunnable(cam_id,save_path)
         
         self.cam_windows[cam_id].signals.closed.connect(self.cam_threads[cam_id].stop)
         self.cam_threads[cam_id].signals.release.connect(self.release_cam)
@@ -42,7 +46,8 @@ class Controller():
         self.cam_threads[cam_id].signals.idle.connect(self.cam_windows[cam_id].set_splashscreen)
         self.pool.start(self.cam_threads[cam_id])
         
-        self.cam_windows[cam_id].live_button.clicked.connect(self.cam_threads[cam_id].livestream_toggle)
+        self.cam_windows[cam_id].live_button.clicked.connect(self.cam_threads[cam_id].toggle_livestream)
+        self.main_window.record_button.clicked.connect(self.cam_threads[cam_id].toggle_recording)
         
         self.cam_windows[cam_id].show()
     
@@ -73,7 +78,7 @@ class Controller():
             button = dlg.exec()
 
             if button == QMessageBox.Yes:
-                print('Path of {} has been saved.'.format(self.main_window.path_entry.text()))
+                self.save_path = self.main_window.path_entry.text()
         else:
             raise ValueError('Path edit button text is not set as expected')
     

@@ -34,12 +34,12 @@ def setup_camera(cam: Camera,exposure=None):
             cam.ExposureTimeAbs.set(str(exposure))
         elif cam.get_id() == 'DEV_000F314F19EB':
             try:
-                cam.ExposureTimeAbs.set('15000')
+                cam.ExposureTimeAbs.set('30000')
             except (AttributeError, VimbaFeatureError):
                 pass
         elif cam.get_id() == 'DEV_000F314DA5E0':
             try:
-                cam.ExposureTimeAbs.set('70000')
+                cam.ExposureTimeAbs.set('30000')
             except (AttributeError, VimbaFeatureError):
                 pass
         elif cam.get_id() == 'DEV_000F314DE3E6':
