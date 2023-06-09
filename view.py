@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import (QApplication, QHBoxLayout, QLabel, QLineEdit,
 
 
 class MainWindow(QMainWindow):
+    """Main window for TAASView. Contains all of the camera
+    connection and control widgets.
+    """
     def __init__(self) -> None:
         super().__init__()
         
@@ -62,13 +65,21 @@ class MainWindow(QMainWindow):
         )
         self.cam_control_layout.addWidget(self.record_button)
         
-        self.temp_button = QPushButton('Print dict contents')
-        self.temp_button.setStyleSheet(
+        self.live_button = QPushButton('Livestream Video')
+        self.live_button.setStyleSheet(
             "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
             "font-size: 14px; } "
             "QPushButton:pressed { background-color: #c0c0c0; }"
         )
-        # self.cam_control_layout.addWidget(self.temp_button)
+        self.cam_control_layout.addWidget(self.live_button)
+        
+        self.close_button = QPushButton('Close Cameras')
+        self.close_button.setStyleSheet(
+            "QPushButton { background-color: #f8f8f8; border: 1px solid #c0c0c0; padding: 10px; "
+            "font-size: 14px; } "
+            "QPushButton:pressed { background-color: #c0c0c0; }"
+        )
+        self.cam_control_layout.addWidget(self.close_button)
         
         self.cam_control_layout.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         

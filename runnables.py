@@ -16,7 +16,10 @@ class RunnableSignals(QObject):
     idle = pyqtSignal()
     
 class CameraRunnable(QRunnable):
-    
+    """A runnable that acts as a camera controller. It connects to
+    and sets up its corresponding camera and sends its frames to the
+    relevant camera window.
+    """
     def __init__(self, camID:str, save_path:str):
         super().__init__()
         self.signals = RunnableSignals()
@@ -47,10 +50,7 @@ class CameraRunnable(QRunnable):
                             
                             if self.is_recording:
                                 self.video_file.write(array)
-                            
-                            # ratio = 1
-                            # dim = (int(array.shape[1]*ratio),int(array.shape[0]*ratio))
-                            # array = cv.resize(array, dim, interpolation=cv.INTER_AREA)
+
                             qimage = utils.nparray2QImage(array)
                             self.signals.frame.emit(qimage)
                             if not self.is_livestreaming or self.is_stopped:
@@ -73,11 +73,11 @@ class CameraRunnable(QRunnable):
         raise FileExistsError("Searched many possible video paths in the given save_path - none available.")
     
     def toggle_recording(self):
-        if self.is_recording: # Already recording
+        if self.is_recording:
             self.is_recording = False
             
             self.video_file.release()
-        else: # Was not recording yet
+        else:
             self.is_idle = False
             self.is_livestreaming = True
             self.is_recording = True
